@@ -202,44 +202,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           );
                         },
                       ),
-                      
-                      const SizedBox(height: 24),
-                      
-                      // Default credentials hint
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.blue[50],
-                          border: Border.all(color: Colors.blue[300]!),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(Icons.info, color: Colors.blue[700], size: 20),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Compte administrateur par défaut:',
-                                  style: TextStyle(
-                                    color: Colors.blue[700],
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Utilisateur: admin\nMot de passe: admin123',
-                              style: TextStyle(
-                                color: Colors.blue[700],
-                                fontFamily: 'monospace',
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                     ],
                   ),
                 ),

@@ -12,6 +12,7 @@ const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || 'localhost';
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production';
 
 // Database setup
@@ -521,9 +522,9 @@ app.get('/health', (req, res) => {
 // Initialize database and start server
 initDatabase();
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-  console.log(`API endpoints available at http://localhost:${PORT}/api`);
+app.listen(PORT, HOST, () => {
+  console.log(`Server is running on http://${HOST}:${PORT}`);
+  console.log(`API endpoints available at http://${HOST}:${PORT}/api`);
   console.log('Default admin credentials: username: admin, password: admin123');
 });
 
