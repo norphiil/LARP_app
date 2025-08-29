@@ -6,11 +6,11 @@ class AppConfig {
   static int get apiTimeout => int.tryParse(dotenv.env['API_TIMEOUT'] ?? '30000') ?? 30000;
   
   // URLs des endpoints API
-  static String get loginUrl => '$apiBaseUrl/api/login';
+  static String get loginUrl => '$apiBaseUrl/api/auth/login';
   static String get refreshTokenUrl => '$apiBaseUrl/api/refresh-token';
   static String get usersUrl => '$apiBaseUrl/api/users';
   static String get rolesUrl => '$apiBaseUrl/api/roles';
-  static String get profileUrl => '$apiBaseUrl/api/profile';
+  static String get profileUrl => '$apiBaseUrl/api/auth/profile';
   
   // Méthodes utilitaires
   static String userUrl(String userId) => '$apiBaseUrl/api/users/$userId';

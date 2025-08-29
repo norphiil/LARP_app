@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/users_provider.dart';
+import '../providers/auth_provider.dart';
 
 class CreateUserScreen extends StatefulWidget {
   const CreateUserScreen({super.key});
@@ -32,6 +33,9 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      if (!authProvider.isAuthenticated) return;
+      
       final usersProvider = Provider.of<UsersProvider>(context, listen: false);
       usersProvider.loadRoles();
     });

@@ -195,6 +195,11 @@ class UsersProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint('Error loading roles: $e');
+      // Don't show authentication errors to user, just log them
+      if (!e.toString().contains('Authentication required')) {
+        _errorMessage = 'Failed to load roles: ${e.toString().replaceFirst('Exception: ', '')}';
+        notifyListeners();
+      }
     }
   }
 

@@ -9,15 +9,26 @@ const rateLimit = require('express-rate-limit');
 const validator = require('validator');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || 'localhost';
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production';
 
-// Database setup
-const dbPath = path.join(__dirname, 'database.db');
+// Database setup - Use environment variable or default path
+const dbPath = process.env.DATABASE_PATH || path.join(__dirname, 'database.db');
+
+// Ensure database directory exists
+const dbDir = path.dirname(dbPath);
+if (!fs.existsSync(dbDir)) {
+  fs.mkdirSync(dbDir, { recursive: true });
+}
+
 const db = new sqlite3.Database(dbPath);
+
+// Trust proxy when behind reverse proxy (like Traefik)
+app.set('trust proxy', 1);
 
 // Middleware
 app.use(helmet());

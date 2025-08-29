@@ -21,6 +21,9 @@ void main() async {
   // Initialize configuration
   await AppConfig.initialize();
   
+  // Initialize database factory (required for desktop platforms)
+  await DatabaseService.initializeDatabaseFactory();
+  
   // Initialize services
   final apiService = ApiService();
   await apiService.init();

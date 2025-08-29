@@ -21,9 +21,7 @@ services:
       - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production}
       - DATABASE_PATH=/app/data/database.db
     volumes:
-      # Volume nommé pour persister la base de données
       - backend-data:/app/data
-      # Volume pour les logs (optionnel)
       - ./logs:/app/logs
     networks:
       - backend-network

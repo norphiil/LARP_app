@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart';
 import '../models/user.dart';
 import '../models/api_models.dart';
@@ -8,13 +10,27 @@ class DatabaseService {
   static Database? _database;
   static const String _databaseName = 'user_management.db';
   static const int _databaseVersion = 1;
+  static bool _initialized = false;
 
   // Tables
   static const String _usersTable = 'users';
   static const String _modificationsTable = 'user_modifications';
   static const String _rolesTable = 'roles';
 
+  // Initialize database factory for desktop platforms
+  static Future<void> initializeDatabaseFactory() async {
+    if (_initialized) return;
+    
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      // Initialize FFI for desktop platforms
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    }
+    _initialized = true;
+  }
+
   Future<Database> get database async {
+    await initializeDatabaseFactory();
     if (_database != null) return _database!;
     _database = await _initDatabase();
     return _database!;

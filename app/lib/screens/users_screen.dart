@@ -17,6 +17,9 @@ class _UsersScreenState extends State<UsersScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      if (!authProvider.isAuthenticated) return;
+      
       final usersProvider = Provider.of<UsersProvider>(context, listen: false);
       usersProvider.refreshUsers();
       usersProvider.loadRoles();

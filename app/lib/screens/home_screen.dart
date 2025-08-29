@@ -35,6 +35,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _initializeData() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    if (!authProvider.isAuthenticated) return;
+    
     final usersProvider = Provider.of<UsersProvider>(context, listen: false);
     await usersProvider.loadUsers();
     await usersProvider.loadRoles();
