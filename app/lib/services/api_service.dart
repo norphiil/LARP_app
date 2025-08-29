@@ -48,10 +48,21 @@ class ApiService {
       _clearToken();
       throw Exception('Authentication required');
     }
-    
-    final body = jsonDecode(response.body);
-    final error = body['error'] ?? 'Unknown error';
-    throw Exception(error);
+
+    // Gestion spéciale pour 404 page not found (souvent HTML)
+    if (response.statusCode == 404 &&
+        response.body.trim().toLowerCase().contains('page not found')) {
+      throw Exception('Erreur de connexion au serveur. Veuillez réessayer plus tard.');
+    }
+
+    try {
+      final body = jsonDecode(response.body);
+      final error = body['error'] ?? 'Unknown error';
+      throw Exception(error);
+    } catch (e) {
+      // Si la réponse n'est pas du JSON (ex: HTML d'erreur)
+      throw Exception('Erreur de connexion au serveur. Veuillez réessayer plus tard.');
+    }
   }
 
   // Authentication
