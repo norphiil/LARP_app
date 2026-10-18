@@ -35,6 +35,14 @@ class DataService {
     return authResponse;
   }
 
+  Future<String> registerInitialAdmin(String username, String email, String password, {String? firstName, String? lastName}) async {
+    return await _apiService.registerInitial(username, email, password, firstName: firstName, lastName: lastName);
+  }
+
+  Future<bool> canRegisterInitial() async {
+    return await _apiService.canRegisterInitial();
+  }
+
   Future<void> logout() async {
     await _apiService.logout();
   }

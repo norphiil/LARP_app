@@ -23,6 +23,19 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  @override
+  void initState() {
+    super.initState();
+    // On mount, probe whether initial registration is allowed and show dialog
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final canRegister = await authProvider.canRegisterInitial();
+      if (canRegister && mounted) {
+        _showRegisterInitialDialog();
+      }
+    });
+  }
+
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -35,6 +48,39 @@ class _LoginScreenState extends State<LoginScreen> {
     if (success && mounted) {
       // Navigation will be handled by the auth state change
       context.go('/home');
+    }
+  }
+
+  Future<void> _showRegisterInitialDialog() async {
+    final usernameCtrl = TextEditingController();
+    final emailCtrl = TextEditingController();
+    final passwordCtrl = TextEditingController();
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Créer le premier administrateur'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: usernameCtrl, decoration: const InputDecoration(labelText: 'Nom d\'utilisateur')),
+            TextField(controller: emailCtrl, decoration: const InputDecoration(labelText: 'Email')),
+            TextField(controller: passwordCtrl, decoration: const InputDecoration(labelText: 'Mot de passe'), obscureText: true),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Annuler')),
+          ElevatedButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Créer')),
+        ],
+      ),
+    );
+
+    if (result == true) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      await authProvider.registerInitial(usernameCtrl.text.trim(), emailCtrl.text.trim(), passwordCtrl.text);
+      if (authProvider.isAuthenticated && mounted) {
+        context.go('/home');
+      }
     }
   }
 
@@ -201,6 +247,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                           );
                         },
+                      ),
+                      const SizedBox(height: 8),
+                      TextButton(
+                        onPressed: _showRegisterInitialDialog,
+                        child: const Text('Créer le premier administrateur'),
                       ),
                     ],
                   ),

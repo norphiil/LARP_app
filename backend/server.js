@@ -139,21 +139,10 @@ const initDatabase = () => {
       );
     });
 
-    // Create default admin user
-    const adminId = uuidv4();
-    const hashedPassword = bcrypt.hashSync('admin123', 10);
-    
-    db.run(`
-      INSERT OR IGNORE INTO users (
-        id, username, email, password, role, firstName, lastName, 
-        qrCodeData, isActive, createdAt
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [
-      adminId, 'admin', 'admin@example.com', hashedPassword, 'admin',
-      'System', 'Administrator', adminId, 1, new Date().toISOString()
-    ]);
-
-    console.log('Database initialized successfully');
+  // Do not create a default admin user automatically.
+  // Allow initial admin creation via the /api/auth/register-initial endpoint
+  // if and only if no admin user exists in the database.
+  console.log('Database initialized successfully');
   });
 };
 
@@ -211,6 +200,49 @@ app.post('/api/auth/login', (req, res) => {
       });
     }
   );
+});
+
+// Register initial admin if none exists. Public endpoint but only works when
+// there is no admin user in the database yet.
+app.post('/api/auth/register-initial', (req, res) => {
+  const { username, email, password, firstName, lastName } = req.body;
+
+  if (!username || !email || !password) {
+    return res.status(400).json({ error: 'username, email and password are required' });
+  }
+
+  // Check if any admin exists
+  db.get("SELECT COUNT(*) as cnt FROM users WHERE role = 'admin'", (err, row) => {
+    if (err) return res.status(500).json({ error: 'Database error' });
+
+    const adminsCount = row && row.cnt ? row.cnt : 0;
+    if (adminsCount > 0) {
+      return res.status(403).json({ error: 'Admin account already exists' });
+    }
+
+    // Create admin user
+    const newId = uuidv4();
+    const hashed = bcrypt.hashSync(password, 10);
+
+    db.run(`INSERT INTO users (id, username, email, password, role, firstName, lastName, isActive, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [newId, username, email, hashed, 'admin', firstName || '', lastName || '', 1, new Date().toISOString()], function(insertErr) {
+        if (insertErr) return res.status(500).json({ error: 'Failed to create admin' });
+
+        // Return a token for convenience
+        const token = jwt.sign({ id: newId, username, role: 'admin', email }, JWT_SECRET, { expiresIn: '7d' });
+        return res.status(201).json({ token });
+      }
+    );
+  });
+});
+
+// Probe endpoint: report whether initial admin registration is allowed
+app.get('/api/auth/register-initial', (req, res) => {
+  db.get("SELECT COUNT(*) as cnt FROM users WHERE role = 'admin'", (err, row) => {
+    if (err) return res.status(500).json({ canRegister: false });
+    const adminsCount = row && row.cnt ? row.cnt : 0;
+    return res.status(200).json({ canRegister: adminsCount === 0 });
+  });
 });
 
 // Get current user profile
@@ -536,7 +568,7 @@ initDatabase();
 app.listen(PORT, HOST, () => {
   console.log(`Server is running on http://${HOST}:${PORT}`);
   console.log(`API endpoints available at http://${HOST}:${PORT}/api`);
-  console.log('Default admin credentials: username: admin, password: admin123');
+  console.log('Server started; no default admin is created automatically. Use POST /api/auth/register-initial to create the first admin if none exists.');
 });
 
 module.exports = app;

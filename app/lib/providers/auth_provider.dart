@@ -61,6 +61,27 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Register initial admin via backend and set authenticated state if successful
+  Future<bool> registerInitial(String username, String email, String password, {String? firstName, String? lastName}) async {
+    _status = AuthStatus.loading;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+  await _dataService.registerInitialAdmin(username, email, password, firstName: firstName, lastName: lastName);
+      // After registering initial admin, load current user
+      _currentUser = await _dataService.getCurrentUser();
+      _status = AuthStatus.authenticated;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _status = AuthStatus.unauthenticated;
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
+  }
+
   Future<void> logout() async {
     _status = AuthStatus.loading;
     notifyListeners();
@@ -93,5 +114,15 @@ class AuthProvider extends ChangeNotifier {
   void clearError() {
     _errorMessage = null;
     notifyListeners();
+  }
+
+  /// Probe backend to know if initial admin registration is allowed
+  Future<bool> canRegisterInitial() async {
+    try {
+      return await _dataService.canRegisterInitial();
+    } catch (e) {
+      debugPrint('canRegisterInitial probe error: $e');
+      return false;
+    }
   }
 }

@@ -86,6 +86,53 @@ class ApiService {
     }
   }
 
+  // Register initial admin (only works when no admin exists on server)
+  Future<String> registerInitial(String username, String email, String password, {String? firstName, String? lastName}) async {
+    final response = await http.post(
+      Uri.parse('${AppConfig.apiBaseUrl}/api/auth/register-initial'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'username': username,
+        'email': email,
+        'password': password,
+        if (firstName != null) 'firstName': firstName,
+        if (lastName != null) 'lastName': lastName,
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      final body = jsonDecode(response.body);
+      final token = body['token'] as String;
+      await _saveToken(token);
+      return token;
+    } else {
+      _handleError(response);
+      throw Exception('Failed to register initial admin');
+    }
+  }
+
+  /// Probe whether the server allows registering the initial admin.
+  /// Expects the backend to provide a GET /api/auth/register-initial that returns
+  /// { "canRegister": true } when no admin exists.
+  Future<bool> canRegisterInitial() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.apiBaseUrl}/api/auth/register-initial'),
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        return body['canRegister'] == true;
+      }
+
+      // 403 or other statuses mean not allowed
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
   // Logout
   Future<void> logout() async {
     await _clearToken();
